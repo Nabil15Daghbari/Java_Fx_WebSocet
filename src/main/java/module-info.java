@@ -43,7 +43,19 @@ module com.example.projetjavafx {
     opens com.example.projetjavafx.root.messagerie to javafx.fxml;
 
     // mesg
+
+
+    // Ouvrir les packages nécessaires pour GSON
+    opens com.example.projetjavafx.root.mesg.model to com.google.gson;
+    opens com.example.projetjavafx.root.mesg.util to com.google.gson;
     opens com.example.projetjavafx.root.mesg.client to javafx.fxml;
+    exports com.example.projetjavafx.root.mesg.model;
+    exports com.example.projetjavafx.root.mesg.client;
+    exports com.example.projetjavafx.root.mesg.server;
+
+
+
+
     // CSS directories
     opens com.example.projetjavafx.auth.css to javafx.fxml;
 //    opens com.example.projetjavafx.events.css to javafx.fxml;

@@ -1,13 +1,13 @@
 package com.example.projetjavafx.root.mesg.model;
 
 import java.time.LocalDateTime;
-
 public class Message {
-    private String type; // "REGISTER", "MESSAGE", "SYSTEM"
-    private int senderId;
-    private int recipientId;
-    private String content;
-    private LocalDateTime timestamp;
+    // Changer les champs privés en publics pour permettre à GSON d'y accéder
+    public String type; // "REGISTER", "MESSAGE", "SYSTEM"
+    public int senderId;
+    public int recipientId;
+    public String content;
+    public LocalDateTime timestamp;
 
     public Message() {
         this.timestamp = LocalDateTime.now();

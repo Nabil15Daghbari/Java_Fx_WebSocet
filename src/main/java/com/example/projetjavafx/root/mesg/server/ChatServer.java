@@ -1,25 +1,46 @@
 package com.example.projetjavafx.root.mesg.server;
 
-
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.example.projetjavafx.root.mesg.model.Message;
+import com.example.projetjavafx.root.mesg.util.LocalDateTimeAdapter;
 import org.java_websocket.WebSocket;
+import java.net.Socket;
+import java.io.IOException;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
-
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.time.LocalDateTime;
 
 public class ChatServer extends WebSocketServer {
 
     private static final int PORT = 8887;
     private Map<Integer, WebSocket> userConnections = new HashMap<>();
-    private Gson gson = new Gson();
+    private Gson gson;
+    private static ChatServer instance;
 
     public ChatServer() {
         super(new InetSocketAddress(PORT));
+        setReuseAddr(true);
+
+        // Créer une instance de Gson configurée avec l'adaptateur pour LocalDateTime
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .serializeNulls()
+                .create();
+
+        // Add connection timeout settings
+        setConnectionLostTimeout(100);
+    }
+
+    public static synchronized ChatServer getInstance() {
+        if (instance == null) {
+            instance = new ChatServer();
+        }
+        return instance;
     }
 
     @Override
@@ -61,8 +82,11 @@ public class ChatServer extends WebSocketServer {
                         System.out.println("Forwarded message to user: " + msg.getRecipientId());
                     } else {
                         // Store message for offline delivery or notify sender
-                        conn.send(gson.toJson(new Message("SYSTEM", msg.getSenderId(), 0,
-                                "User is offline. Message will be delivered when they connect.")));
+                        /**
+                         *  conn.send(gson.toJson(new Message("SYSTEM", msg.getSenderId(), 0,
+                         *                                 "User is offline. Message will be delivered when they connect.")));
+                         */
+
                     }
                     break;
             }
@@ -92,15 +116,44 @@ public class ChatServer extends WebSocketServer {
     }
 
     public static void main(String[] args) {
-        ChatServer server = new ChatServer();
-        server.start();
-        System.out.println("ChatServer started on port: " + PORT);
+        startServer();
+    }
 
-        // Keep the server running
+    public static void startServer() {
         try {
-            Thread.currentThread().join();
-        } catch (InterruptedException e) {
+            // Check if server is already running
+            try (Socket socket = new Socket("localhost", PORT)) {
+                System.out.println("Server is already running on port " + PORT);
+                return;
+            } catch (IOException e) {
+                // Port is available, continue with server startup
+                System.out.println("Port " + PORT + " is available, starting server...");
+            }
+
+            ChatServer server = getInstance();
+
+            // Add shutdown hook to stop server gracefully
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down server...");
+                try {
+                    server.stop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }));
+
+            // Start server with explicit try-catch
+            try {
+                server.start();
+                System.out.println("ChatServer started successfully on port: " + PORT);
+            } catch (Exception e) {
+                System.err.println("Failed to start server: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.err.println("Critical error starting server: " + e.getMessage());
             e.printStackTrace();
         }
     }
 }
+

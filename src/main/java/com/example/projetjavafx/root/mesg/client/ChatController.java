@@ -4,6 +4,7 @@ import java.net.URISyntaxException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.example.projetjavafx.root.mesg.model.Message;
 import com.example.projetjavafx.root.mesg.model.User;
@@ -17,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -30,6 +32,7 @@ public class ChatController {
     @FXML private TextField messageField;
     @FXML private Button sendButton;
     @FXML private Label selectedUserLabel;
+    @FXML private Label connectionStatusLabel;
 
     private ChatClient client;
     private int currentUserId;
@@ -42,6 +45,10 @@ public class ChatController {
         // Set up UI components
         userListView.setItems(userList);
         userListView.setCellFactory(lv -> new UserListCell());
+
+        // Initialize connection status
+        connectionStatusLabel.setText("Disconnected");
+        connectionStatusLabel.setTextFill(Color.RED);
 
         // Handle user selection
         userListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -69,6 +76,9 @@ public class ChatController {
 
     public void initializeClient(String username) {
         try {
+            // Make sure server is running
+            ServerManager.ensureServerRunning();
+
             // Get current user ID
             currentUserId = userDB.getUserIdByUsername(username);
 
@@ -82,38 +92,93 @@ public class ChatController {
             loadUsers();
 
             // Connect to WebSocket server
-            try {
-                System.out.println("Connecting to WebSocket server...");
-                client = new ChatClient("ws://localhost:8887", this, currentUserId);
-                client.connect();
+            connectToServer();
 
-                // Attendre que la connexion soit établie
-                int attempts = 0;
-                while (!client.isOpen() && attempts < 5) {
-                    System.out.println("Waiting for connection to establish...");
-                    Thread.sleep(1000);
-                    attempts++;
-                }
-
-                if (!client.isOpen()) {
-                    System.err.println("Failed to connect to WebSocket server after " + attempts + " attempts");
-                    showAlert("Connection Error", "Could not connect to chat server after multiple attempts");
-                } else {
-                    System.out.println("Connected to WebSocket server successfully");
-                }
-            } catch (URISyntaxException e) {
-                System.err.println("Invalid WebSocket URI: " + e.getMessage());
-                e.printStackTrace();
-                showAlert("Connection Error", "Invalid WebSocket server address");
-            } catch (InterruptedException e) {
-                System.err.println("Connection wait interrupted: " + e.getMessage());
-                e.printStackTrace();
-            }
         } catch (Exception e) {
             System.err.println("Error initializing client: " + e.getMessage());
             e.printStackTrace();
             showAlert("Initialization Error", "Failed to initialize chat client: " + e.getMessage());
         }
+    }
+
+    // Modify the connectToServer method to be more robust
+    private void connectToServer() {
+        try {
+            System.out.println("Connecting to WebSocket server...");
+            connectionStatusLabel.setText("Connecting...");
+            connectionStatusLabel.setTextFill(Color.ORANGE);
+
+            // Make sure server is running before attempting to connect
+            boolean serverRunning = ServerManager.ensureServerRunning();
+            if (!serverRunning) {
+                System.err.println("Server is not running and could not be started");
+                connectionStatusLabel.setText("Server Unavailable");
+                connectionStatusLabel.setTextFill(Color.RED);
+                showAlert("Connection Error", "Could not connect to chat server. Please try again later.");
+                return;
+            }
+
+            // Wait a bit to ensure server is fully initialized
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Create and connect the client
+            client = new ChatClient("ws://localhost:8887", this, currentUserId);
+
+            // Set connection timeout
+            client.setConnectionLostTimeout(0); // Disable timeout for testing
+
+            // Connect with explicit try-catch
+            try {
+                client.connectBlocking(5, TimeUnit.SECONDS); // Wait up to 5 seconds for connection
+                System.out.println("WebSocket connection established: " + client.isOpen());
+            } catch (Exception e) {
+                System.err.println("Error during WebSocket connection: " + e.getMessage());
+                e.printStackTrace();
+                connectionStatusLabel.setText("Connection Failed");
+                connectionStatusLabel.setTextFill(Color.RED);
+                showAlert("Connection Error", "Failed to connect to chat server: " + e.getMessage());
+            }
+        } catch (URISyntaxException e) {
+            System.err.println("Invalid WebSocket URI: " + e.getMessage());
+            e.printStackTrace();
+            connectionStatusLabel.setText("Connection Error");
+            connectionStatusLabel.setTextFill(Color.RED);
+            showAlert("Connection Error", "Invalid WebSocket server address");
+        }
+    }
+
+    public void onConnectionEstablished() {
+        connectionStatusLabel.setText("Connected");
+        connectionStatusLabel.setTextFill(Color.GREEN);
+
+        // Display system message
+        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                "Connected to chat server. You can now send messages.");
+        displayMessage(systemMsg);
+    }
+
+    public void onConnectionClosed(String reason) {
+        connectionStatusLabel.setText("Disconnected");
+        connectionStatusLabel.setTextFill(Color.RED);
+
+        // Display system message
+        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                "Disconnected from server: " + reason);
+        displayMessage(systemMsg);
+    }
+
+    public void onConnectionError(String errorMessage) {
+        connectionStatusLabel.setText("Connection Error");
+        connectionStatusLabel.setTextFill(Color.RED);
+
+        // Display system message
+        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                "Connection error: " + errorMessage);
+        displayMessage(systemMsg);
     }
 
     private void loadUsers() {
@@ -173,27 +238,46 @@ public class ChatController {
         }
 
         // Vérifier si le client est connecté
-        if (client == null || !client.isOpen()) {
+        if (client == null || !client.isConnected()) {
             System.err.println("WebSocket client is not connected. Attempting to reconnect...");
-            try {
-                // Tentative de reconnexion
-                client = new ChatClient("ws://localhost:8887", this, currentUserId);
-                client.connect();
 
-                // Attendre un peu que la connexion s'établisse
-                Thread.sleep(1000);
+            // Display reconnecting message
+            Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Not connected to server. Attempting to reconnect...");
+            displayMessage(systemMsg);
 
-                if (!client.isOpen()) {
-                    showAlert("Connection Error", "Could not connect to chat server. Please try again later.");
-                    return;
+            // Try to reconnect
+            connectToServer();
+
+            // Wait a bit and check if we're connected
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+
+                    Platform.runLater(() -> {
+                        if (client != null && client.isConnected()) {
+                            // Now we're connected, try to send the message
+                            sendMessageInternal(content);
+                        } else {
+                            // Still not connected
+                            Message errorMsg = new Message("SYSTEM", 0, currentUserId,
+                                    "Could not connect to server. Please try again later.");
+                            displayMessage(errorMsg);
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                System.err.println("Failed to reconnect: " + e.getMessage());
-                showAlert("Connection Error", "Failed to connect to server: " + e.getMessage());
-                return;
-            }
+            }).start();
+
+            return;
         }
 
+        // We're connected, send the message
+        sendMessageInternal(content);
+    }
+
+    private void sendMessageInternal(String content) {
         try {
             // Send message via WebSocket
             client.sendMessage(selectedUserId, content);
@@ -207,7 +291,11 @@ public class ChatController {
         } catch (Exception e) {
             System.err.println("Error sending message: " + e.getMessage());
             e.printStackTrace();
-            showAlert("Send Error", "Failed to send message: " + e.getMessage());
+
+            // Display error message
+            Message errorMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Failed to send message: " + e.getMessage());
+            displayMessage(errorMsg);
         }
     }
 

@@ -2,11 +2,13 @@ package com.example.projetjavafx.root.mesg.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
 import com.example.projetjavafx.root.mesg.model.Message;
+import com.example.projetjavafx.root.mesg.util.LocalDateTimeAdapter;
+import com.google.gson.GsonBuilder;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-
 import com.google.gson.Gson;
 import javafx.application.Platform;
 
@@ -14,7 +16,7 @@ public class ChatClient extends WebSocketClient {
 
     private ChatController controller;
     private int currentUserId;
-    private Gson gson = new Gson();
+    private Gson gson;
     private boolean isConnected = false;
 
     public ChatClient(String serverUri, ChatController controller, int userId) throws URISyntaxException {
@@ -22,23 +24,53 @@ public class ChatClient extends WebSocketClient {
         this.controller = controller;
         this.currentUserId = userId;
 
+        // Créer une instance de Gson configurée avec l'adaptateur pour LocalDateTime
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .serializeNulls()
+                .create();
+
         // Configuration des options de connexion
         this.setConnectionLostTimeout(30); // 30 secondes
     }
 
+    // Add a method to connect with timeout
+    public boolean connectWithTimeout(int timeoutSeconds) {
+        try {
+            return this.connectBlocking(timeoutSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Connection attempt was interrupted: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        System.out.println("Connected to server");
+        System.out.println("Connected to server with status code: " + handshakedata.getHttpStatus() +
+                ", status message: " + handshakedata.getHttpStatusMessage());
         isConnected = true;
 
         // Register user with the server
         try {
             Message registerMsg = new Message("REGISTER", currentUserId, 0, "");
-            send(gson.toJson(registerMsg));
+            String jsonMessage = gson.toJson(registerMsg);
+            System.out.println("Sending registration message: " + jsonMessage);
+            send(jsonMessage);
             System.out.println("Sent registration message for user ID: " + currentUserId);
+
+            // Notify UI that we're connected
+            Platform.runLater(() -> {
+                controller.onConnectionEstablished();
+            });
         } catch (Exception e) {
             System.err.println("Error sending registration message: " + e.getMessage());
             e.printStackTrace();
+
+            // Notify UI of the error
+            Platform.runLater(() -> {
+                controller.onConnectionError("Failed to register with server: " + e.getMessage());
+            });
         }
     }
 
@@ -63,16 +95,26 @@ public class ChatClient extends WebSocketClient {
     public void onClose(int code, String reason, boolean remote) {
         System.out.println("Connection closed: " + reason + " (code: " + code + ", remote: " + remote + ")");
         isConnected = false;
+
+        // Notify UI that connection is closed
+        Platform.runLater(() -> {
+            controller.onConnectionClosed(reason);
+        });
     }
 
     @Override
     public void onError(Exception ex) {
         System.err.println("Error in WebSocket connection: " + ex.getMessage());
         ex.printStackTrace();
+
+        // Notify UI of the error
+        Platform.runLater(() -> {
+            controller.onConnectionError(ex.getMessage());
+        });
     }
 
     public void sendMessage(int recipientId, String content) {
-        if (!isConnected) {
+        if (!isConnected || !isOpen()) {
             System.err.println("Cannot send message: not connected to server");
             throw new IllegalStateException("Not connected to server");
         }
@@ -92,3 +134,4 @@ public class ChatClient extends WebSocketClient {
         return isConnected && isOpen();
     }
 }
+

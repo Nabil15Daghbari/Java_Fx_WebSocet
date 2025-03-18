@@ -33,12 +33,10 @@
   -fx-font-weight: bold;
 }
 
-/* Messages container */
 .messages-container {
   -fx-background-color: white;
 }
 
-/* Message input container */
 .message-input-container {
   -fx-background-color: #f0f2f5;
   -fx-border-color: #e4e6eb;
@@ -88,3 +86,4 @@
 .send-button:hover {
   -fx-background-color: #0070d8;
 }
+

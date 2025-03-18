@@ -7,8 +7,11 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.projetjavafx.root.mesg.client.ChatController"
+            stylesheets="@../css/discussion.css"
             prefHeight="600.0" prefWidth="800.0">
 
+
+    <!-- Sidebar -->
     <left>
         <VBox spacing="10" prefWidth="250" styleClass="sidebar">
             <padding>
@@ -20,9 +23,14 @@
 
             <Label text="Contacts" styleClass="header-label"/>
             <ListView fx:id="userListView" VBox.vgrow="ALWAYS"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Status:" />
+                <Label fx:id="connectionStatusLabel" text="Disconnected" />
+            </HBox>
         </VBox>
     </left>
 
+    <!-- Chat area -->
     <center>
         <BorderPane styleClass="chat-area">
             <top>
@@ -56,4 +64,3 @@
         </BorderPane>
     </center>
 </BorderPane>
-
