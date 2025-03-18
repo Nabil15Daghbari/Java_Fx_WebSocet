@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="405.0" prefWidth="589.0" style="-fx-background-color: #1c2b5d;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projetjavafx.root.messagerie.controllers.GroupChatroomController">
+
+    <!-- Icône de paramètres en haut à droite -->
+    <Button layoutX="531.0" layoutY="11.0" prefHeight="30" prefWidth="30" style="-fx-background-color: transparent;">
+        <graphic>
+            <HBox alignment="CENTER_LEFT" spacing="10" />
+
+        </graphic>
+    </Button>
+
+    <!-- Zone de discussion -->
+    <VBox layoutX="20.0" layoutY="50.0" prefHeight="300.0" prefWidth="541.0" spacing="10.0" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10;">
+        <ListView fx:id="chatListView" prefHeight="312.0" prefWidth="539.0" />
+    </VBox>
+
+    <!-- Champ de message et bouton envoyer -->
+    <HBox layoutX="20.0" layoutY="360.0" prefWidth="560.0" spacing="10.0">
+        <TextField fx:id="messageField" prefHeight="30.0" prefWidth="450.0" style="-fx-background-color: white; -fx-background-radius: 5;" />
+        <Button fx:id="sendGroupButton" prefHeight="31.0" prefWidth="80.0" style="-fx-background-color: #d54d67; -fx-text-fill: white; -fx-background-radius: 5;" text="Send" />
+    </HBox>
+       <ImageView fx:id="groupImageView" fitHeight="40" fitWidth="40" layoutX="31.0" layoutY="7.0" />
+       <Label fx:id="groupNameLabel" layoutX="212.0" layoutY="14.0" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Nom du Groupe" />
+
+</AnchorPane>

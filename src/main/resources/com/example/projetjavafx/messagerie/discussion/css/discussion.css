@@ -1,0 +1,109 @@
+/* Global styles */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f0f2f5;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+    -fx-padding: 10px;
+    -fx-border-radius: 10px;
+}
+
+/* Sidebar headers */
+.header-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 0;
+    -fx-text-fill: #333;
+}
+
+/* Chat area */
+.chat-area {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 0);
+    -fx-border-radius: 10px;
+}
+
+/* Chat header */
+.chat-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 10px;
+}
+
+.chat-header-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* Messages container */
+.messages-container {
+    -fx-background-color: white;
+    -fx-padding: 10px;
+}
+
+/* Message input area */
+.message-input-container {
+    -fx-background-color: #f0f2f5;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 10px;
+}
+
+/* Messages */
+.sent-message, .received-message, .system-message {
+    -fx-background-radius: 18px;
+    -fx-padding: 12px 18px;
+    -fx-max-width: 300px;
+    -fx-font-size: 14px;
+}
+
+/* Sent message */
+.sent-message {
+    -fx-background-color: #0084ff;
+    -fx-text-fill: white;
+    -fx-alignment: center-right;
+}
+
+/* Received message */
+.received-message {
+    -fx-background-color: #e4e6eb;
+    -fx-text-fill: black;
+}
+
+/* System message */
+.system-message {
+    -fx-background-color: #f1c40f;
+    -fx-text-fill: black;
+    -fx-font-style: italic;
+}
+
+/* Timestamp */
+.time-text {
+    -fx-font-size: 10px;
+    -fx-fill: #65676b;
+    -fx-padding: 0 5px;
+}
+
+/* Send button */
+.send-button {
+    -fx-background-color: #0084ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px 15px;
+    -fx-transition: all 0.3s ease-in-out;
+}
+
+.send-button:hover {
+    -fx-background-color: #006dd8;
+}
+
+.send-button:pressed {
+    -fx-background-color: #005bb5;
+}

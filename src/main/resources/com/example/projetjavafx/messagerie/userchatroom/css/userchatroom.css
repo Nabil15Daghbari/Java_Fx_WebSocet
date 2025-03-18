@@ -1,0 +1,56 @@
+/* Style général */
+AnchorPane {
+    -fx-background-color: #ffffff;
+    -fx-padding: 20px;
+    -fx-border-color: #3d5472;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+/* Titre */
+Label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d54d67;
+    -fx-padding: 10px 0;
+}
+
+/* Zone de texte */
+TextField {
+    -fx-background-color: #88a0af;
+    -fx-text-fill: #1e1c27;
+    -fx-font-size: 14px;
+    -fx-padding: 5px;
+    -fx-border-color: #6a6a5a;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+/* Bouton d'envoi */
+Button {
+    -fx-background-color:#1e1c27 ;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 10px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+Button:hover {
+    -fx-background-color: #675552;
+    -fx-cursor: hand;
+}
+
+/* Zone de messages */
+ScrollPane {
+    -fx-background-color: #1c2b5d;
+    -fx-border-color: #1e298f;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+VBox {
+    -fx-padding: 10px;
+    -fx-spacing: 10px;
+}

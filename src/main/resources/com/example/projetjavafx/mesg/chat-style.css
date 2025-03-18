@@ -1,0 +1,98 @@
+/* Main application styles */
+.root {
+  -fx-font-family: "Segoe UI", Arial, sans-serif;
+  -fx-background-color: #f0f2f5;
+}
+
+/* Sidebar styles */
+.sidebar {
+  -fx-background-color: white;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 0);
+}
+
+.header-label {
+  -fx-font-size: 16px;
+  -fx-font-weight: bold;
+  -fx-padding: 5 0 5 0;
+}
+
+/* Chat area styles */
+.chat-area {
+  -fx-background-color: white;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 0);
+}
+
+.chat-header {
+  -fx-background-color: #f0f2f5;
+  -fx-border-color: #e4e6eb;
+  -fx-border-width: 0 0 1 0;
+}
+
+.chat-header-label {
+  -fx-font-size: 18px;
+  -fx-font-weight: bold;
+}
+
+.messages-container {
+  -fx-background-color: white;
+}
+
+.message-input-container {
+  -fx-background-color: #f0f2f5;
+  -fx-border-color: #e4e6eb;
+  -fx-border-width: 1 0 0 0;
+}
+
+/* Message styles */
+.sent-message {
+  -fx-background-color: #0084ff;
+  -fx-text-fill: white;
+  -fx-background-radius: 18px;
+  -fx-padding: 10px 15px;
+  -fx-max-width: 300px;
+}
+
+.received-message {
+  -fx-background-color: #e4e6eb;
+  -fx-text-fill: black;
+  -fx-background-radius: 18px;
+  -fx-padding: 10px 15px;
+  -fx-max-width: 300px;
+}
+
+.system-message {
+  -fx-background-color: #f1c40f;
+  -fx-text-fill: black;
+  -fx-background-radius: 18px;
+  -fx-padding: 10px 15px;
+  -fx-max-width: 300px;
+  -fx-font-style: italic;
+}
+
+.time-text {
+  -fx-font-size: 10px;
+  -fx-fill: #65676b;
+  -fx-padding: 0 5 0 5;
+}
+
+/* User list styles */
+.status-online {
+  -fx-fill: #31a24c;
+}
+
+.status-offline {
+  -fx-fill: #65676b;
+}
+
+/* Button styles */
+.send-button {
+  -fx-background-color: #0084ff;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  -fx-background-radius: 5px;
+}
+
+.send-button:hover {
+  -fx-background-color: #0070d8;
+}
+

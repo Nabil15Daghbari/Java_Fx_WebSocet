@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+
+<?import java.net.URL?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projetjavafx.root.social.PostController">
+    <top>
+        <VBox spacing="10" style="-fx-padding: 20;">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Créer une publication" style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+                <ComboBox fx:id="privacyComboBox" promptText="Moi uniquement ▼"
+                          style="-fx-background-color: transparent; -fx-border-color: #ccc;"/>            </HBox>
+            <Separator/>
+            <Label text="Hadil Lajili" style="-fx-font-weight: bold; -fx-font-size: 16;"/>
+        </VBox>
+    </top>
+    <!-- Left Sidebar (Navigation Bar) -->
+
+    <left>
+        <VBox prefHeight="608.0" prefWidth="212.0" style="-fx-background-color: #1C2B5D;">
+            <children>
+                <ImageView fitHeight="106.0" fitWidth="114.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
+                    <image>
+                        <Image url="@img/user.png" />
+                    </image>
+                    <VBox.margin>
+                        <Insets bottom="-2.0" left="49.0" right="22.0" top="35.0" />
+                    </VBox.margin>
+                </ImageView>
+                <Label text="Utilisaeur" textFill="#f2ebeb">
+                    <font>
+                        <Font name="Apple Chancery" size="19.0" />
+                    </font>
+                    <padding>
+                        <Insets left="59.0" />
+                    </padding>
+                </Label>
+                <ImageView fitHeight="180.0" fitWidth="212.0" pickOnBounds="true" preserveRatio="true" />
+                <Button alignment="BOTTOM_LEFT" graphicTextGap="22.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="218.0" style="-fx-background-color: #FEFEFE;" text=" OverView" textFill="#170000">
+                    <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@img/user.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                    <padding>
+                        <Insets bottom="9.0" left="50.0" top="3.0" />
+                    </padding>
+                </Button>
+                <Button alignment="TOP_LEFT" graphicTextGap="22.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="236.0" style="-fx-background-color: #FEFEFE;" text=" Mesaages" textFill="#170000" wrapText="true">
+                    <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@img/user.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <padding>
+                        <Insets bottom="9.0" left="50.0" top="2.0" />
+                    </padding>
+                </Button>
+                <Button alignment="TOP_LEFT" graphicTextGap="22.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="230.0" style="-fx-background-color: #FEFEFE;" text="   Settings" textFill="#170000">
+                    <graphic>
+                        <ImageView fitHeight="17.0" fitWidth="17.0" nodeOrientation="RIGHT_TO_LEFT" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@img/user.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <padding>
+                        <Insets bottom="9.0" left="50.0" top="5.0" />
+                    </padding>
+                </Button>
+                <Button alignment="TOP_LEFT" graphicTextGap="22.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="227.0" style="-fx-background-color: #FEFEFE;" text="  Sign out" textFill="#170000">
+                    <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@img/user.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <padding>
+                        <Insets bottom="9.0" left="50.0" top="2.0" />
+                    </padding>
+                </Button>
+            </children>
+        </VBox>
+    </left>
+
+
+    <!-- Center Content -->
+    <center>
+        <VBox spacing="20" style="-fx-padding: 20;">
+            <TextArea fx:id="postContent"  promptText="Quoi de neuf, Hadil ?" style="-fx-min-height: 100; -fx-border-color: transparent;"/>
+
+            <!-- Zone d'ajout de médias -->
+            <StackPane  fx:id="mediaPreviewContainer" style="-fx-border-color: #ccc; -fx-border-style: dashed; -fx-border-radius: 5; -fx-padding: 20;">
+                <VBox alignment="CENTER" spacing="10">
+                    <Label onMouseClicked="#handleAddMediaClick" text="Ajouter des photos/vidéos&#10;ou faites glisser-déposer" textAlignment="CENTER"/>
+
+                </VBox>
+                <ImageView fx:id="mediaPreview" visible="false" fitWidth="300" preserveRatio="true"/>
+            </StackPane>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox spacing="10" style="-fx-padding: 20;">
+
+            <Button fx:id="publishButton" text="Publier" style="-fx-background-color: #1877f2; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+        </VBox>
+    </bottom>
+
+    <stylesheets>
+        <URL value="@css/social.css"/>
+    </stylesheets>
+</BorderPane>

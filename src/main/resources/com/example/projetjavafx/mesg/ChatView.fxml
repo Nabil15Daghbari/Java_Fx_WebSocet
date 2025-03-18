@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.projetjavafx.root.mesg.client.ChatController"
+            prefHeight="600.0" prefWidth="800.0">
+
+    <left>
+        <VBox spacing="10" prefWidth="250" styleClass="sidebar">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Label text="Search Users" styleClass="header-label"/>
+            <TextField fx:id="searchField" promptText="Search..."/>
+
+            <Label text="Contacts" styleClass="header-label"/>
+            <ListView fx:id="userListView" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+
+    <center>
+        <BorderPane styleClass="chat-area">
+            <top>
+                <HBox alignment="CENTER_LEFT" styleClass="chat-header">
+                    <padding>
+                        <Insets top="10" right="15" bottom="10" left="15"/>
+                    </padding>
+                    <Label fx:id="selectedUserLabel" text="Select a user to start chatting" styleClass="chat-header-label"/>
+                </HBox>
+            </top>
+
+            <center>
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox fx:id="chatBox" spacing="10" styleClass="messages-container">
+                        <padding>
+                            <Insets top="10" right="15" bottom="10" left="15"/>
+                        </padding>
+                    </VBox>
+                </ScrollPane>
+            </center>
+
+            <bottom>
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="message-input-container">
+                    <padding>
+                        <Insets top="10" right="15" bottom="10" left="15"/>
+                    </padding>
+                    <TextField fx:id="messageField" promptText="Type a message..." HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="sendButton" text="Send" styleClass="send-button"/>
+                </HBox>
+            </bottom>
+        </BorderPane>
+    </center>
+</BorderPane>
+

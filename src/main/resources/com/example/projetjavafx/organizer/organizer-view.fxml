@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="1050" prefWidth="1920" stylesheets="@css/orgnaizer.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projetjavafx.root.organizer.OrganizerController">
+
+    <!-- Left Sidebar -->
+    <left>
+        <VBox fx:id="sidebar" prefHeight="1050.0" prefWidth="250.0">
+            <!-- Application Title -->
+            <Label fx:id="appTitle" prefHeight="45.0" prefWidth="229.0" text="Your Posts" />
+
+            <!-- Navigation Buttons -->
+            <VBox>
+                <Button fx:id="homeButton" onAction="#handleHomeButton" prefHeight="38.0" prefWidth="213.0" text="Home" />
+                <Button fx:id="analyticsButton" onAction="#onAnalyticsClick" prefHeight="38.0" prefWidth="227.0" text="Analytics" />
+                <Button fx:id="createEventButton" prefHeight="38.0" prefWidth="213.0" text="Create Event" />
+                <Button fx:id="createJobButton" onAction="#onCreateJobClick" prefHeight="38.0" prefWidth="223.0" text="Create Job Post" />
+               <Button fx:id="jobFeedButton" onAction="#onJobFeedButtonClick" prefHeight="38.0" prefWidth="241.0" text="Job Feed" />
+            <Button fx:id="reviewApplicationsButton" mnemonicParsing="false" onAction="#onReviewApplicationsButtonClick" prefHeight="38.0" prefWidth="211.0" text="Review Applications" />
+            <Button fx:id="appliedAtButton" mnemonicParsing="false" onAction="#onAppliedAtButtonClick" prefHeight="38.0" prefWidth="264.0" text="Applied  At " />
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Center Content -->
+    <center>
+        <VBox fx:id="contentContainer">
+            <!-- Event Management Section -->
+            <VBox fx:id="eventSection">
+                <HBox fx:id="eventHeader">
+                    <Label fx:id="eventLabel" text="Event Management" />
+                    <Button fx:id="newEventButton" text="+ New Event" />
+                </HBox>
+                <TableView fx:id="eventsTable">
+                    <columns>
+                        <TableColumn fx:id="eventNameColumn" text="Name" />
+                        <TableColumn fx:id="eventDescColumn" text="Description" />
+                        <TableColumn fx:id="eventStartColumn" text="Start Time" />
+                        <TableColumn fx:id="eventEndColumn" text="End Time" />
+                        <TableColumn fx:id="eventLocationColumn" text="Location" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Job Management Section -->
+            <VBox fx:id="jobSection">
+                <HBox fx:id="jobHeader">
+                    <Label fx:id="jobLabel" text="Job Post Management" />
+                    <Button fx:id="newJobPostButton" onAction="#onNewJobPostClick" text="+ New Job Post" />
+                </HBox>
+                <TableView fx:id="jobsTable">
+                    <columns>
+                        <TableColumn fx:id="jobTitleColumn" text="Job Title" />
+                        <TableColumn fx:id="eventTitleColumn" text="Event Title" />
+                        <TableColumn fx:id="jobLocationColumn" text="Location" />
+                        <TableColumn fx:id="employmentTypeColumn" text="Employment Type" />
+                        <TableColumn fx:id="applicationDeadlineColumn" text="Deadline" />
+                        <TableColumn fx:id="minSalaryColumn" text="Min Salary" />
+                        <TableColumn fx:id="maxSalaryColumn" text="Max Salary" />
+                        <TableColumn fx:id="currencyColumn" text="Currency" />
+                        <TableColumn fx:id="jobDescColumn" text="Description" />
+                        <TableColumn fx:id="recruiterNameColumn" text="Recruiter Name" />
+                        <TableColumn fx:id="recruiterEmailColumn" text="Recruiter Email" />
+                        <TableColumn fx:id="createdAtColumn" text="Created At" />
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>
