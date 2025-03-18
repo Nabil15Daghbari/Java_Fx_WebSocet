@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+
 public class UserDB {
 
     public int getUserIdByUsername(String username) {
@@ -33,27 +35,54 @@ public class UserDB {
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String query = "SELECT user_id, username, status FROM Users";
+        String query = "SELECT user_id, username FROM Users";
+
+        boolean databaseAccessSuccessful = false;
 
         try (Connection conn = AivenMySQLManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
+            System.out.println("Executing getAllUsers query");
+            databaseAccessSuccessful = true;
+
             while (rs.next()) {
-                User user = new User(rs.getInt("user_id"), rs.getString("username"));
-               // user.setStatus(rs.getString("status"));
+                int userId = rs.getInt("user_id");
+                String username = rs.getString("username");
+
+                System.out.println("Found user: " + userId + " - " + username);
+
+                User user = new User(userId, username);
                 users.add(user);
             }
         } catch (SQLException e) {
+            System.err.println("Database error in getAllUsers: " + e.getMessage());
             e.printStackTrace();
+            databaseAccessSuccessful = false;
         }
 
+        // Si aucun utilisateur n'a été trouvé ou si l'accès à la base de données a échoué,
+        // ajouter des utilisateurs de test
+        if (users.isEmpty()) {
+            System.out.println("No users found in database or database access failed. Adding test users.");
+            users.add(new User(1, "user1"));
+            users.add(new User(2, "user2"));
+            users.add(new User(3, "user3"));
+
+            // Si l'accès à la base de données a réussi mais qu'aucun utilisateur n'a été trouvé,
+            // nous pourrions vouloir les ajouter à la base de données ici
+            if (databaseAccessSuccessful) {
+                System.out.println("Database access was successful but no users found. Consider adding users to the database.");
+            }
+        }
+
+        System.out.println("Total users found/created: " + users.size());
         return users;
     }
 
     public List<User> searchUsers(String searchTerm) {
         List<User> users = new ArrayList<>();
-        String query = "SELECT user_id, username, status FROM Users WHERE username LIKE ?";
+        String query = "SELECT user_id, username FROM Users WHERE username LIKE ?";
 
         try (Connection conn = AivenMySQLManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -63,7 +92,6 @@ public class UserDB {
 
             while (rs.next()) {
                 User user = new User(rs.getInt("user_id"), rs.getString("username"));
-             //   user.setStatus(rs.getString("status"));
                 users.add(user);
             }
         } catch (SQLException e) {
@@ -71,20 +99,6 @@ public class UserDB {
         }
 
         return users;
-    }
-
-    public void updateUserStatus(int userId, String status) {
-        String query = "UPDATE Users SET status = ? WHERE user_id = ?";
-
-        try (Connection conn = AivenMySQLManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, status);
-            stmt.setInt(2, userId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }
 

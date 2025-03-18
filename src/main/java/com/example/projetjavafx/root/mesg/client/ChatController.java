@@ -46,6 +46,9 @@ public class ChatController {
         userListView.setItems(userList);
         userListView.setCellFactory(lv -> new UserListCell());
 
+        // Charger la liste des utilisateurs immédiatement
+        loadUsers();
+
         // Initialize connection status
         connectionStatusLabel.setText("Disconnected");
         connectionStatusLabel.setTextFill(Color.RED);
@@ -87,9 +90,6 @@ public class ChatController {
                 System.out.println("User not found, creating a test user: " + username);
                 currentUserId = 1; // ID par défaut pour les tests
             }
-
-            // Load all users
-            loadUsers();
 
             // Connect to WebSocket server
             connectToServer();
@@ -368,4 +368,3 @@ public class ChatController {
         }
     }
 }
-
