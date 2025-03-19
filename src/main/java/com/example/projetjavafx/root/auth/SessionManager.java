@@ -27,7 +27,10 @@ public class SessionManager {
         // Constructeur privé pour empêcher l'instanciation directe
         public SessionManager() {}
 
-
+    // Méthode pour obtenir l'ID de l'utilisateur connecté
+    public int getCurrentUserId() {
+        return currentUserId;
+    }
         public ObservableValue<? extends Boolean> isUserNotConnected (){
             return isUserNotLoggedIn;
         }
@@ -60,9 +63,7 @@ public class SessionManager {
     }
 
         // Méthode pour obtenir l'ID de l'utilisateur connecté
-        public int getCurrentUserId() {
-            return currentUserId;
-        }
+
 
         public void updatepart(){
             String sql = "select event_id from participation where participant_id = "+currentUserId;

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.example.projetjavafx.root.auth.SessionManager;
+import com.example.projetjavafx.root.mesg.db.MessageDB;
 import com.example.projetjavafx.root.mesg.model.Message;
 import com.example.projetjavafx.root.mesg.model.User;
 import com.example.projetjavafx.root.mesg.repository.UserDB;
@@ -16,11 +18,14 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import java.util.HashMap;
+import java.util.Map;
 
 
 
@@ -33,13 +38,18 @@ public class ChatController {
     @FXML private Button sendButton;
     @FXML private Label selectedUserLabel;
     @FXML private Label connectionStatusLabel;
+    @FXML private Label currentUserLabel;
+    @FXML private BorderPane chatPane;
 
     private ChatClient client;
     private int currentUserId;
+    private String currentUsername;
     private int selectedUserId = -1;
     private UserDB userDB = new UserDB();
+    private MessageDB messageDB = new MessageDB();
     private ObservableList<User> userList = FXCollections.observableArrayList();
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    private Map<Integer, Boolean> unreadMessages = new HashMap<>();
 
     public void initialize() {
         // Set up UI components
@@ -58,8 +68,25 @@ public class ChatController {
             if (newVal != null) {
                 selectedUserId = newVal.getUserId();
                 selectedUserLabel.setText("Chat with " + newVal.getUsername());
-                chatBox.getChildren().clear(); // Clear previous chat
-                // Here you would load previous messages from database
+
+                // Clear previous chat
+                chatBox.getChildren().clear();
+
+                // Load previous messages for this conversation
+                loadConversationHistory(currentUserId, selectedUserId);
+
+                // Marquer les messages comme lus
+                unreadMessages.put(selectedUserId, false);
+
+                // Mettre à jour l'affichage de la liste des utilisateurs
+                userListView.refresh();
+
+                // Enable message input
+                messageField.setDisable(false);
+                sendButton.setDisable(false);
+
+                // Scroll to bottom of chat
+                Platform.runLater(() -> scrollToBottom());
             }
         });
 
@@ -75,23 +102,46 @@ public class ChatController {
                 sendMessage();
             }
         });
+
+        // Disable message input until a user is selected
+        messageField.setDisable(true);
+        sendButton.setDisable(true);
+
+        // Ensure the Messages table exists in the database
+        messageDB.createMessagesTableIfNotExists();
+
+        // Ajouter un log pour le débogage
+        System.out.println("ChatController initialized");
+
+        // user id
+        initializeClient();
     }
 
-    public void initializeClient(String username) {
+    public void initializeClient() {
         try {
-            // Make sure server is running
+            System.out.println("Initializing client...");
+
+            // Assurez-vous que le serveur est en cours d'exécution
             ServerManager.ensureServerRunning();
 
-            // Get current user ID
-            currentUserId = userDB.getUserIdByUsername(username);
+            // Récupérer l'ID de l'utilisateur depuis SessionManager
+            SessionManager sessionManager = SessionManager.getInstance();
+            currentUserId = sessionManager.getCurrentUserId();
+            currentUsername = sessionManager.getCurrentUserEmail();  // Récupérer l'email ou le nom d'utilisateur
 
+            // Vérifier si l'utilisateur est trouvé dans le sessionManager
             if (currentUserId == -1) {
-                // Si l'utilisateur n'existe pas, créons-en un pour les tests
-                System.out.println("User not found, creating a test user: " + username);
+                // Si l'utilisateur n'est pas trouvé, définir un ID par défaut
+                System.out.println("User not found, creating a test user.");
                 currentUserId = 1; // ID par défaut pour les tests
             }
 
-            // Connect to WebSocket server
+            System.out.println("User ID from sessionManager: " + currentUserId);
+
+            // Mettre à jour le label avec le nom d'utilisateur
+          //  currentUserLabel.setText(currentUsername);
+
+            // Connexion au serveur WebSocket
             connectToServer();
 
         } catch (Exception e) {
@@ -152,33 +202,39 @@ public class ChatController {
     }
 
     public void onConnectionEstablished() {
-        connectionStatusLabel.setText("Connected");
-        connectionStatusLabel.setTextFill(Color.GREEN);
+        Platform.runLater(() -> {
+            connectionStatusLabel.setText("Connected");
+            connectionStatusLabel.setTextFill(Color.GREEN);
 
-        // Display system message
-        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
-                "Connected to chat server. You can now send messages.");
-        displayMessage(systemMsg);
+            // Display system message
+            Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Connected to chat server. You can now send messages.");
+            displayMessage(systemMsg);
+        });
     }
 
     public void onConnectionClosed(String reason) {
-        connectionStatusLabel.setText("Disconnected");
-        connectionStatusLabel.setTextFill(Color.RED);
+        Platform.runLater(() -> {
+            connectionStatusLabel.setText("Disconnected");
+            connectionStatusLabel.setTextFill(Color.RED);
 
-        // Display system message
-        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
-                "Disconnected from server: " + reason);
-        displayMessage(systemMsg);
+            // Display system message
+            Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Disconnected from server: " + reason);
+            displayMessage(systemMsg);
+        });
     }
 
     public void onConnectionError(String errorMessage) {
-        connectionStatusLabel.setText("Connection Error");
-        connectionStatusLabel.setTextFill(Color.RED);
+        Platform.runLater(() -> {
+            connectionStatusLabel.setText("Connection Error");
+            connectionStatusLabel.setTextFill(Color.RED);
 
-        // Display system message
-        Message systemMsg = new Message("SYSTEM", 0, currentUserId,
-                "Connection error: " + errorMessage);
-        displayMessage(systemMsg);
+            // Display system message
+            Message systemMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Connection error: " + errorMessage);
+            displayMessage(systemMsg);
+        });
     }
 
     private void loadUsers() {
@@ -226,6 +282,38 @@ public class ChatController {
         });
     }
 
+    private void loadConversationHistory(int currentUserId, int selectedUserId) {
+        // Load previous messages from database
+        List<Message> messages = messageDB.getConversation(currentUserId, selectedUserId);
+
+        // Display messages in the chat
+        for (Message message : messages) {
+            displayMessageOnly(message); // Utiliser displayMessageOnly pour éviter de sauvegarder à nouveau
+        }
+
+        // If no messages, display a welcome message
+        if (messages.isEmpty()) {
+            Message welcomeMsg = new Message("SYSTEM", 0, currentUserId,
+                    "Start a new conversation with " + getUsernameById(selectedUserId));
+            displayMessageOnly(welcomeMsg); // Utiliser displayMessageOnly pour éviter de sauvegarder
+        }
+
+        // Mark messages as read
+        messageDB.markMessagesAsRead(currentUserId, selectedUserId);
+
+        // Scroll to bottom
+        Platform.runLater(() -> scrollToBottom());
+    }
+
+    private String getUsernameById(int userId) {
+        for (User user : userList) {
+            if (user.getUserId() == userId) {
+                return user.getUsername();
+            }
+        }
+        return "User " + userId;
+    }
+
     private void sendMessage() {
         if (selectedUserId == -1) {
             showAlert("Error", "Please select a user to chat with");
@@ -244,7 +332,7 @@ public class ChatController {
             // Display reconnecting message
             Message systemMsg = new Message("SYSTEM", 0, currentUserId,
                     "Not connected to server. Attempting to reconnect...");
-            displayMessage(systemMsg);
+            displayMessageOnly(systemMsg); // Utiliser displayMessageOnly pour éviter de sauvegarder
 
             // Try to reconnect
             connectToServer();
@@ -262,7 +350,7 @@ public class ChatController {
                             // Still not connected
                             Message errorMsg = new Message("SYSTEM", 0, currentUserId,
                                     "Could not connect to server. Please try again later.");
-                            displayMessage(errorMsg);
+                            displayMessageOnly(errorMsg); // Utiliser displayMessageOnly pour éviter de sauvegarder
                         }
                     });
                 } catch (InterruptedException e) {
@@ -279,15 +367,26 @@ public class ChatController {
 
     private void sendMessageInternal(String content) {
         try {
+            // Create message object
+            Message msg = new Message("MESSAGE", currentUserId, selectedUserId, content);
+
+            // Sauvegarder le message dans la base de données
+            boolean saved = messageDB.saveMessage(msg);
+            if (!saved) {
+                System.err.println("Failed to save message to database");
+            }
+
             // Send message via WebSocket
             client.sendMessage(selectedUserId, content);
 
-            // Also display the sent message in our own chat
-            Message sentMsg = new Message("MESSAGE", currentUserId, selectedUserId, content);
-            displayMessage(sentMsg);
+            // Display the sent message in our own chat
+            displayMessageOnly(msg); // Utiliser displayMessageOnly pour éviter de sauvegarder à nouveau
 
             // Clear the input field
             messageField.clear();
+
+            // Scroll to bottom
+            Platform.runLater(() -> scrollToBottom());
         } catch (Exception e) {
             System.err.println("Error sending message: " + e.getMessage());
             e.printStackTrace();
@@ -295,45 +394,102 @@ public class ChatController {
             // Display error message
             Message errorMsg = new Message("SYSTEM", 0, currentUserId,
                     "Failed to send message: " + e.getMessage());
-            displayMessage(errorMsg);
+            displayMessageOnly(errorMsg); // Utiliser displayMessageOnly pour éviter de sauvegarder
         }
     }
 
+    // Méthode pour afficher un message sans le sauvegarder
+    private void displayMessageOnly(Message message) {
+        Platform.runLater(() -> {
+            // Only display messages that are relevant to the current chat
+            if (message.getType().equals("SYSTEM") ||
+                    (message.getSenderId() == selectedUserId && message.getRecipientId() == currentUserId) ||
+                    (message.getSenderId() == currentUserId && message.getRecipientId() == selectedUserId)) {
+
+                HBox messageContainer = new HBox(10);
+
+                // Create message bubble
+                TextFlow bubble = new TextFlow();
+                Text text = new Text(message.getContent());
+                bubble.getChildren().add(text);
+
+                // Style based on sender
+                if (message.getType().equals("SYSTEM")) {
+                    bubble.getStyleClass().add("system-message");
+                    messageContainer.setAlignment(Pos.CENTER);
+                } else if (message.getSenderId() == currentUserId) {
+                    // Message envoyé par l'utilisateur actuel -> aligné à droite
+                    bubble.getStyleClass().add("sent-message");
+                    messageContainer.setAlignment(Pos.CENTER_RIGHT);
+                } else {
+                    // Message reçu -> aligné à gauche
+                    bubble.getStyleClass().add("received-message");
+                    messageContainer.setAlignment(Pos.CENTER_LEFT);
+                }
+
+                // Add timestamp
+                Text timeText = new Text(message.getTimestamp().format(timeFormatter));
+                timeText.getStyleClass().add("time-text");
+
+                // Ajouter le timestamp à gauche pour les messages reçus
+                // et à droite pour les messages envoyés
+                if (message.getSenderId() == currentUserId) {
+                    messageContainer.getChildren().addAll(timeText, bubble);
+                } else {
+                    messageContainer.getChildren().addAll(bubble, timeText);
+                }
+
+                chatBox.getChildren().add(messageContainer);
+            }
+        });
+    }
+
+    // Méthode pour afficher un message et gérer les notifications
     public void displayMessage(Message message) {
-        // Only display messages that are relevant to the current chat
-        if (message.getType().equals("SYSTEM") ||
-                (message.getSenderId() == selectedUserId && message.getRecipientId() == currentUserId) ||
-                (message.getSenderId() == currentUserId && message.getRecipientId() == selectedUserId)) {
-
-            HBox messageContainer = new HBox(10);
-
-            // Create message bubble
-            TextFlow bubble = new TextFlow();
-            Text text = new Text(message.getContent());
-            bubble.getChildren().add(text);
-
-            // Style based on sender
-            if (message.getType().equals("SYSTEM")) {
-                bubble.getStyleClass().add("system-message");
-                messageContainer.setAlignment(Pos.CENTER);
-            } else if (message.getSenderId() == currentUserId) {
-                bubble.getStyleClass().add("sent-message");
-                messageContainer.setAlignment(Pos.CENTER_RIGHT);
-            } else {
-                bubble.getStyleClass().add("received-message");
-                messageContainer.setAlignment(Pos.CENTER_LEFT);
+        // Si c'est un message normal (pas système) et qu'il vient d'un autre utilisateur
+        if (!message.getType().equals("SYSTEM") && message.getSenderId() != currentUserId) {
+            // Sauvegarder le message reçu dans la base de données
+            boolean saved = messageDB.saveMessage(message);
+            if (!saved) {
+                System.err.println("Failed to save received message to database");
             }
 
-            // Add timestamp
-            Text timeText = new Text(message.getTimestamp().format(timeFormatter));
-            timeText.getStyleClass().add("time-text");
+            // Marquer comme non lu si ce n'est pas l'utilisateur actuellement sélectionné
+            if (message.getSenderId() != selectedUserId) {
+                unreadMessages.put(message.getSenderId(), true);
+                userListView.refresh();
 
-            messageContainer.getChildren().addAll(bubble, timeText);
-
-            Platform.runLater(() -> {
-                chatBox.getChildren().add(messageContainer);
-            });
+                // Notifier l'utilisateur du nouveau message
+                notifyNewMessage(message.getSenderId());
+            }
         }
+
+        // Afficher le message s'il est pertinent pour la conversation actuelle
+        displayMessageOnly(message);
+    }
+
+    // Vérifier si un utilisateur est actuellement sélectionné
+    public boolean isUserSelected(int userId) {
+        return selectedUserId == userId;
+    }
+
+    // Notifier l'utilisateur d'un nouveau message
+    public void notifyNewMessage(int senderId) {
+        String senderName = getUsernameById(senderId);
+
+        // Créer une notification visuelle (par exemple, une alerte)
+        Platform.runLater(() -> {
+            Alert notification = new Alert(Alert.AlertType.INFORMATION);
+            notification.setTitle("New Message");
+            notification.setHeaderText("New message from " + senderName);
+            notification.setContentText("You have received a new message. Click on the user to view it.");
+            notification.show();
+        });
+    }
+
+    // Scroll chat to bottom
+    private void scrollToBottom() {
+        //chatScrollPane.setVvalue(1.0);
     }
 
     private void showAlert(String title, String content) {
@@ -362,9 +518,34 @@ public class ChatController {
                 // Create status indicator
                 javafx.scene.shape.Circle statusIndicator = UserStatusCircle.createStatusCircle(5);
 
+                // Si l'utilisateur a des messages non lus, changer la couleur de l'indicateur
+                if (unreadMessages.getOrDefault(user.getUserId(), false)) {
+                    statusIndicator.setFill(Color.RED);
+                    nameLabel.setStyle("-fx-font-weight: bold;");
+                } else {
+                    statusIndicator.setFill(Color.GRAY);
+                    nameLabel.setStyle("");
+                }
+
                 container.getChildren().addAll(statusIndicator, nameLabel);
                 setGraphic(container);
             }
         }
     }
+
+    // Ajouter une méthode pour recharger les conversations
+    //public void reloadConversations() {
+    //    System.out.println("Reloading conversations");
+    //    loadConversations();
+    //}
+
+    // Ajouter une méthode getter pour le client
+    public ChatClient getClient() {
+        return client;
+    }
+
+    // Modifier la méthode displayMessage pour utiliser processReceivedMessage
+    //public void displayMessage(Message message) {
+    //    processReceivedMessage(message);
+    //}
 }

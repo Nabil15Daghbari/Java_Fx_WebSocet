@@ -2,7 +2,7 @@ package com.example.projetjavafx.root.mesg.model;
 
 import java.time.LocalDateTime;
 public class Message {
-    // Changer les champs privés en publics pour permettre à GSON d'y accéder
+    // Champs publics pour permettre à GSON d'y accéder
     public String type; // "REGISTER", "MESSAGE", "SYSTEM"
     public int senderId;
     public int recipientId;
@@ -62,4 +62,3 @@ public class Message {
         this.timestamp = timestamp;
     }
 }
-

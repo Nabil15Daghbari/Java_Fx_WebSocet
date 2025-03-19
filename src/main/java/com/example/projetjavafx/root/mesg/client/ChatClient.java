@@ -4,6 +4,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
+
+import com.example.projetjavafx.root.mesg.db.MessageDB;
 import com.example.projetjavafx.root.mesg.model.Message;
 import com.example.projetjavafx.root.mesg.util.LocalDateTimeAdapter;
 import com.google.gson.GsonBuilder;
@@ -76,7 +78,7 @@ public class ChatClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        System.out.println("Received message: " + message);
+        System.out.println("Client received message: " + message);
 
         try {
             final Message msg = gson.fromJson(message, Message.class);
@@ -122,10 +124,13 @@ public class ChatClient extends WebSocketClient {
         try {
             Message msg = new Message("MESSAGE", currentUserId, recipientId, content);
             String jsonMessage = gson.toJson(msg);
-            System.out.println("Sending message: " + jsonMessage);
+            System.out.println("Sending message to server: " + jsonMessage);
+
+            // Envoyer le message au serveur
             send(jsonMessage);
         } catch (Exception e) {
             System.err.println("Error sending message: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Failed to send message", e);
         }
     }

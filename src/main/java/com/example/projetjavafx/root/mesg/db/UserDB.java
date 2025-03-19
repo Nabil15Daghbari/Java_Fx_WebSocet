@@ -33,6 +33,7 @@ public class UserDB {
         return userId;
     }
 
+    // Améliorer la méthode getAllUsers pour ajouter plus de logs et de vérifications
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String query = "SELECT user_id, username FROM Users";
@@ -73,6 +74,23 @@ public class UserDB {
             // nous pourrions vouloir les ajouter à la base de données ici
             if (databaseAccessSuccessful) {
                 System.out.println("Database access was successful but no users found. Consider adding users to the database.");
+
+                // Ajouter les utilisateurs de test à la base de données
+                try (Connection conn = AivenMySQLManager.getConnection()) {
+                    String insertQuery = "INSERT INTO Users (user_id, username) VALUES (?, ?) ON DUPLICATE KEY UPDATE username = VALUES(username)";
+                    PreparedStatement insertStmt = conn.prepareStatement(insertQuery);
+
+                    for (User user : users) {
+                        insertStmt.setInt(1, user.getUserId());
+                        insertStmt.setString(2, user.getUsername());
+                        insertStmt.executeUpdate();
+                    }
+
+                    System.out.println("Added test users to database");
+                } catch (SQLException e) {
+                    System.err.println("Error adding test users to database: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -101,4 +119,3 @@ public class UserDB {
         return users;
     }
 }
-

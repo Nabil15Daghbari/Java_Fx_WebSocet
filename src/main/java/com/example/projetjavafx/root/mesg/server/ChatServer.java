@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.projetjavafx.root.mesg.db.MessageDB;
 import com.example.projetjavafx.root.mesg.model.Message;
 import com.example.projetjavafx.root.mesg.util.LocalDateTimeAdapter;
 import org.java_websocket.WebSocket;
@@ -14,6 +15,7 @@ import org.java_websocket.server.WebSocketServer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.time.LocalDateTime;
+
 
 public class ChatServer extends WebSocketServer {
 
@@ -57,7 +59,7 @@ public class ChatServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        System.out.println("Received message: " + message);
+        System.out.println("Received message on server: " + message);
 
         try {
             Message msg = gson.fromJson(message, Message.class);
@@ -66,7 +68,7 @@ public class ChatServer extends WebSocketServer {
                 case "REGISTER":
                     // Register user connection
                     userConnections.put(msg.getSenderId(), conn);
-                    System.out.println("Registered user: " + msg.getSenderId());
+                    System.out.println("Registered user: " + msg.getSenderId() + " with connection: " + conn.getRemoteSocketAddress());
 
                     // Send confirmation back to client
                     Message confirmMsg = new Message("SYSTEM", 0, msg.getSenderId(),
@@ -78,15 +80,14 @@ public class ChatServer extends WebSocketServer {
                     // Forward message to recipient
                     WebSocket recipientConn = userConnections.get(msg.getRecipientId());
                     if (recipientConn != null && recipientConn.isOpen()) {
+                        System.out.println("Forwarding message to user: " + msg.getRecipientId() + " at " + recipientConn.getRemoteSocketAddress());
                         recipientConn.send(message);
-                        System.out.println("Forwarded message to user: " + msg.getRecipientId());
+                        System.out.println("Message forwarded successfully");
                     } else {
+                        System.out.println("Recipient not connected or connection not open. User ID: " + msg.getRecipientId());
                         // Store message for offline delivery or notify sender
-                        /**
-                         *  conn.send(gson.toJson(new Message("SYSTEM", msg.getSenderId(), 0,
-                         *                                 "User is offline. Message will be delivered when they connect.")));
-                         */
-
+                        conn.send(gson.toJson(new Message("SYSTEM", 0, msg.getSenderId(),
+                                "User is offline. Message will be delivered when they connect.")));
                     }
                     break;
             }
@@ -156,4 +157,3 @@ public class ChatServer extends WebSocketServer {
         }
     }
 }
-
