@@ -21,6 +21,14 @@ public class ChatClient extends WebSocketClient {
     private Gson gson;
     private boolean isConnected = false;
 
+    /**
+     *
+     * @param serverUri
+     * @param controller
+     * @param userId
+     * @throws URISyntaxException
+    Établir une connexion WebSocket : Se connecte à un serveur WebSocket via une URL (ex: ws://localhost:8887).*
+     */
     public ChatClient(String serverUri, ChatController controller, int userId) throws URISyntaxException {
         super(new URI(serverUri));
         this.controller = controller;
@@ -47,6 +55,7 @@ public class ChatClient extends WebSocketClient {
         }
     }
 
+  // Appelé lorsque la connexion WebSocket est établie.
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         System.out.println("Connected to server with status code: " + handshakedata.getHttpStatus() +
@@ -75,7 +84,7 @@ public class ChatClient extends WebSocketClient {
             });
         }
     }
-
+  //  Reçoit un message du serveur et le transmet au ChatController.
     @Override
     public void onMessage(String message) {
         System.out.println("Client received message: " + message);
@@ -93,6 +102,7 @@ public class ChatClient extends WebSocketClient {
         }
     }
 
+    // Gère la déconnexion du WebSocket.
     @Override
     public void onClose(int code, String reason, boolean remote) {
         System.out.println("Connection closed: " + reason + " (code: " + code + ", remote: " + remote + ")");
@@ -104,6 +114,7 @@ public class ChatClient extends WebSocketClient {
         });
     }
 
+    //  Capture les erreurs de connexion.
     @Override
     public void onError(Exception ex) {
         System.err.println("Error in WebSocket connection: " + ex.getMessage());
@@ -115,6 +126,7 @@ public class ChatClient extends WebSocketClient {
         });
     }
 
+    // Permet d'envoyer des messages au serveur.
     public void sendMessage(int recipientId, String content) {
         if (!isConnected || !isOpen()) {
             System.err.println("Cannot send message: not connected to server");

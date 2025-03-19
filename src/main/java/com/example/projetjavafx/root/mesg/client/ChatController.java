@@ -151,7 +151,6 @@ public class ChatController {
         }
     }
 
-    // Modify the connectToServer method to be more robust
     private void connectToServer() {
         try {
             System.out.println("Connecting to WebSocket server...");
